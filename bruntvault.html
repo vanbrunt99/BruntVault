@@ -1,0 +1,995 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BruntVault</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700;9..40,800&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#070707;--card:#111;--bdr:#1f1f1f;
+  --ibg:#0d0d0d;--ibdr:#1e1e1e;
+  --txt:#f0f0f0;--mt:#3a3a3a;--dim:#1e1e1e;
+  --gr:#10b981;--rd:#ef4444;--am:#f59e0b;
+  --fn:'DM Sans','Segoe UI',system-ui,sans-serif
+}
+body{background:var(--bg);color:var(--txt);font-family:var(--fn);min-height:100vh}
+::-webkit-scrollbar{width:3px}::-webkit-scrollbar-thumb{background:#222;border-radius:2px}
+input::placeholder{color:#242424}input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none}
+input[type=checkbox]{accent-color:#fff;width:15px;height:15px;cursor:pointer}
+
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes up{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+@keyframes sl{from{opacity:0;transform:translateX(-8px)}to{opacity:1;transform:translateX(0)}}
+@keyframes tin{from{opacity:0;transform:translateX(-50%) translateY(8px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
+@keyframes pp{0%{transform:scale(1)}50%{transform:scale(.9)}100%{transform:scale(1)}}
+@keyframes pd{from{transform:scale(.95);opacity:0}to{transform:scale(1);opacity:1}}
+
+/* Base */
+.card{background:var(--card);border:1px solid var(--bdr);border-radius:14px}
+.screen{animation:up .35s ease}
+.ctr{display:flex;align-items:center;justify-content:center;min-height:100vh;padding:20px}
+
+/* Inputs */
+.inp{width:100%;background:var(--ibg);border:1px solid var(--ibdr);border-radius:9px;color:var(--txt);padding:11px 14px;font-size:14px;outline:none;transition:border-color .15s;font-family:var(--fn)}
+.inp:focus{border-color:#303030}
+.inp.sel{cursor:pointer}
+.fld{margin-bottom:18px}
+.fld label{display:block;color:#404040;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;margin-bottom:7px}
+.fld textarea{resize:vertical;min-height:72px;line-height:1.5}
+
+/* Buttons */
+.btn{padding:11px 20px;border-radius:9px;font-weight:600;font-size:14px;cursor:pointer;border:none;transition:opacity .15s;font-family:var(--fn)}
+.btn:hover{opacity:.8}
+.bw{background:#fff;color:#000}
+.bg{background:transparent;color:#555;border:1px solid var(--ibdr)!important}
+.bd{background:#ef444415;color:#ef4444;border:1px solid #ef444428!important}
+.bf{width:100%}
+
+/* Auth */
+.aw{width:100%;max-width:400px;animation:up .4s ease}
+.ai{display:inline-flex;width:60px;height:60px;border-radius:18px;background:#111;border:1px solid #1e1e1e;align-items:center;justify-content:center;font-size:28px}
+
+/* Error */
+.err{background:#ef444410;border:1px solid #ef444425;border-radius:8px;padding:10px 14px;color:#ef4444;font-size:13px;margin-bottom:18px}
+
+/* Header */
+.hdr{border-bottom:1px solid #141414;height:58px;padding:0 24px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:var(--bg);z-index:100}
+.hl,.hr{display:flex;align-items:center;gap:6px}
+.nb{background:none;border:none;color:#3a3a3a;border-radius:7px;padding:6px 14px;font-size:13px;font-weight:500;cursor:pointer;transition:all .15s;font-family:var(--fn)}
+.nb.on{background:#161616;color:#fff}
+.nsep{width:1px;height:20px;background:#1a1a1a;margin:0 6px}
+.bkb{background:none;border:none;color:#3a3a3a;cursor:pointer;font-size:18px;padding:2px 8px;font-family:var(--fn);line-height:1}
+.ob{background:none;border:1px solid var(--ibdr);color:#303030;border-radius:7px;padding:5px 12px;font-size:12px;cursor:pointer;font-family:var(--fn)}
+
+/* Main */
+.main{max-width:940px;margin:0 auto;padding:36px 24px 80px}
+
+/* Hero */
+.hero{background:linear-gradient(160deg,#111,#0d0d0d);border:1px solid var(--bdr);border-radius:14px;padding:32px 36px;margin-bottom:28px;display:flex;align-items:center;gap:36px;position:relative;overflow:hidden}
+.hero::before,.hero::after{content:'';position:absolute;border-radius:50%;pointer-events:none}
+.hero::before{width:200px;height:200px;top:-60px;right:-60px;border:1px solid #181818}
+.hero::after{width:140px;height:140px;top:-30px;right:-30px;border:1px solid #1c1c1c}
+.hero-r{flex:1;min-width:0}
+
+/* Donut */
+.donut-svg circle{transition:stroke-dasharray .6s ease,stroke-dashoffset .6s ease}
+.donut-legend{display:flex;flex-direction:column;gap:6px;margin-top:16px}
+.dl-item{display:flex;align-items:center;gap:8px;font-size:12px;color:#3a3a3a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+/* Recurring banner */
+.rec-banner{background:#0d0d0d;border:1px solid var(--bdr);border-radius:12px;padding:16px 20px;margin-bottom:22px}
+.rec-item{display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid #141414}
+.rec-item:last-child{border-bottom:none;padding-bottom:0}
+.rec-item:first-child{padding-top:0}
+
+/* Envelope grid */
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:14px}
+.ec{background:#111;border:1px solid var(--bdr);border-radius:14px;padding:20px 20px 18px;cursor:pointer;transition:transform .18s,box-shadow .18s;position:relative;user-select:none}
+.ec:hover{transform:translateY(-3px)}
+.ec.drag-over{outline:1.5px solid #444;background:#161616}
+.ec.dragging{opacity:.4}
+.drag-handle{position:absolute;top:12px;right:14px;color:#222;font-size:13px;cursor:grab;padding:4px}
+.drag-handle:active{cursor:grabbing}
+
+/* Trend */
+.trend{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:600;padding:3px 8px;border-radius:99px}
+.t-up{background:#10b98115;color:#10b981}
+.t-dn{background:#ef444415;color:#ef4444}
+.t-nt{background:#1a1a1a;color:#3a3a3a}
+
+/* Transactions */
+.tx{background:#111;border:1px solid var(--bdr);border-radius:14px;padding:14px 18px;display:flex;justify-content:space-between;align-items:center;margin-bottom:2px}
+.txi{width:34px;height:34px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;margin-right:14px;flex-shrink:0}
+.rec-badge{display:inline-flex;align-items:center;gap:3px;background:#f59e0b12;color:#f59e0b;border:1px solid #f59e0b20;border-radius:99px;font-size:10px;font-weight:600;padding:2px 7px;margin-left:6px}
+
+/* Pickers */
+.cp{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
+.cd{width:26px;height:26px;border-radius:6px;cursor:pointer;border:2.5px solid transparent;transition:transform .15s;outline:none}
+.cd.s{border-color:#fff;transform:scale(1.2)}
+.ep{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.eb{background:none;border:1.5px solid transparent;border-radius:8px;font-size:20px;padding:5px 7px;cursor:pointer;transition:all .1s;line-height:1}
+.eb.s{border-color:#444;background:#1a1a1a;transform:scale(1.1)}
+.eb:hover{background:#181818}
+
+/* Modal */
+.ov{position:fixed;inset:0;background:rgba(0,0,0,.85);display:flex;align-items:center;justify-content:center;z-index:200;padding:16px}
+.mb{background:#111;border:1px solid var(--bdr);border-radius:14px;width:100%;max-width:440px;max-height:92vh;overflow-y:auto;padding:28px;animation:pd .2s ease}
+.mhdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:26px}
+.mhdr h2{color:#f5f5f5;font-size:17px;font-weight:700;letter-spacing:-.3px}
+.mhdr button{background:none;border:none;color:#333;font-size:18px;cursor:pointer}
+.mft{display:flex;gap:10px;margin-top:6px}
+.tb{flex:1;padding:10px;border-radius:9px;font-weight:600;font-size:14px;cursor:pointer;transition:all .15s;font-family:var(--fn)}
+
+/* Action row */
+.ar{display:flex;gap:10px;margin-top:24px}
+.ac{flex:1;border-radius:9px;padding:11px;font-size:14px;font-weight:600;cursor:pointer;font-family:var(--fn);transition:opacity .15s;border:1px solid}
+.ac:hover{opacity:.8}
+.ai-in{background:#10b98112;border-color:#10b98128;color:#10b981}
+.ai-out{background:#ef444412;border-color:#ef444428;color:#ef4444}
+.ai-tr{background:#6366f112;border-color:#6366f128;color:#818cf8}
+
+/* Settings */
+.sg{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:16px}
+.sb{background:#0c0c0c;border-radius:10px;padding:14px 16px}
+
+/* Toast */
+.toast{position:fixed;bottom:28px;left:50%;transform:translateX(-50%);background:#1a1a1a;border:1px solid #282828;border-radius:99px;padding:10px 22px;color:var(--txt);font-size:13px;font-weight:500;z-index:300;white-space:nowrap;animation:tin .3s ease;box-shadow:0 8px 32px rgba(0,0,0,.6);font-family:var(--fn)}
+
+/* Spinner */
+.spin{width:32px;height:32px;border:2px solid #1e1e1e;border-top-color:#777;border-radius:50%;animation:spin .7s linear infinite}
+
+/* PIN screen */
+.pin-wrap{width:100%;max-width:320px;text-align:center;animation:up .4s ease}
+.pin-dots{display:flex;justify-content:center;gap:16px;margin:36px 0}
+.pd{width:16px;height:16px;border-radius:50%;border:2px solid #2a2a2a;transition:all .2s}
+.pd.f{background:#fff;border-color:#fff;box-shadow:0 0 12px rgba(255,255,255,.25)}
+.pd.err{background:#ef4444;border-color:#ef4444}
+.pin-pad{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:8px}
+.pp{background:#141414;border:1px solid #1e1e1e;border-radius:12px;padding:18px 0;font-size:22px;font-weight:600;cursor:pointer;font-family:var(--fn);color:var(--txt);transition:background .1s}
+.pp:hover{background:#1c1c1c}
+.pp:active{animation:pp .15s ease}
+.pp.del{font-size:18px;color:#555}
+.pp.sp{background:none;border:none;cursor:default}
+
+/* Month filter */
+.mf-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;gap:12px}
+.mf-row select{background:#0d0d0d;border:1px solid var(--ibdr);border-radius:8px;color:var(--txt);padding:7px 12px;font-size:12px;outline:none;font-family:var(--fn);cursor:pointer}
+
+/* Notes card */
+.notes-card{background:#0a0a0a;border:1px solid var(--dim);border-radius:10px;padding:12px 16px;margin-top:16px;font-size:13px;color:#3e3e3e;line-height:1.6;white-space:pre-wrap}
+
+/* Responsive */
+@media(max-width:640px){
+  .main{padding:24px 16px 60px}
+  .hdr{padding:0 14px}
+  .hero{flex-direction:column;gap:20px;padding:24px}
+  .grid{grid-template-columns:1fr 1fr}
+}
+@media(max-width:420px){
+  .grid{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script>
+/* ═══════════════════════════════════════════════════════════
+   STORAGE
+═══════════════════════════════════════════════════════════ */
+const Db={
+  async get(k){
+    if(window.storage){try{const r=await window.storage.get(k);return r?JSON.parse(r.value):null}catch{}}
+    try{const v=localStorage.getItem(k);return v?JSON.parse(v):null}catch{return null}
+  },
+  async set(k,v){
+    if(window.storage){try{await window.storage.set(k,JSON.stringify(v));return}catch{}}
+    try{localStorage.setItem(k,JSON.stringify(v))}catch{}
+  }
+};
+
+/* ═══════════════════════════════════════════════════════════
+   CONSTANTS
+═══════════════════════════════════════════════════════════ */
+const K={cr:'bv:v1:creds',en:'bv:v1:envs',tx:'bv:v1:txs',rc:'bv:v1:rec'};
+const PAL=['#6366f1','#3b82f6','#06b6d4','#10b981','#84cc16','#f59e0b','#f97316','#ef4444','#ec4899','#8b5cf6','#a78bfa','#22d3ee'];
+const EMO=['💰','💳','🏦','🏛️','🏠','🚗','🏋️','🎓','🍔','🛒','🏥','✈️','🎮','📱','💡','⚡','🎁','💎','🌟','🔧','📊','💼','🎯','🐕','🌿','🏖️','⚽','🎸','📚','🔑','🍕','🎪','🧾','🏄','🎨'];
+const CUR=['₡','$','€','£','¥','Q','R$'];
+
+/* ═══════════════════════════════════════════════════════════
+   STATE
+═══════════════════════════════════════════════════════════ */
+let S={
+  screen:'loading',  // loading|setup|login|pin|app
+  creds:null,        // {username,passHash,pinHash?}
+  envs:[],           // [{id,name,color,emoji,currency,balance,note,order,createdAt}]
+  txs:[],            // [{id,envelopeId,amount,type,note,date}]
+  rec:[],            // [{id,envelopeId,amount,type,note,day,lastLogged}]
+  view:'dash',       // dash|detail|settings
+  activeEnv:null,
+  modal:null,
+  form:{},
+  lf:{u:'',p:''},
+  pinBuf:'',
+  pinErr:false,
+  filterMonth:'',
+  err:'',toast:''
+};
+let _tt=null;
+let _dragId=null,_dragOvId=null;
+
+function setState(p,noR){S={...S,...p};if(!noR)render();}
+function upF(k,v){S.form={...S.form,[k]:v};}
+function upL(k,v){S.lf={...S.lf,[k]:v};}
+function showErr(m){setState({err:m});}
+function toast$(m){if(_tt)clearTimeout(_tt);setState({toast:m});_tt=setTimeout(()=>setState({toast:''}),3000);}
+
+/* ═══════════════════════════════════════════════════════════
+   UTILS
+═══════════════════════════════════════════════════════════ */
+async function sha256(m){const b=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(m));return[...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,'0')).join('');}
+function money(n,s='₡'){const a=Math.abs(Number(n||0)).toLocaleString('es-CR',{minimumFractionDigits:0,maximumFractionDigits:0});return`${s} ${Number(n)<0?'−':''}${a}`;}
+function dStr(iso){return new Date(iso).toLocaleDateString('es-CR',{day:'2-digit',month:'short',year:'numeric'});}
+function mStr(iso){return new Date(iso).toISOString().slice(0,7);}
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function fld(l,h){return`<div class="fld"><label>${l}</label>${h}</div>`;}
+function inp(id,tp,ph,v='',ex=''){return`<input class="inp" id="${id}" type="${tp}" placeholder="${ph}" value="${esc(v)}" ${ex}>`;}
+function errH(){return S.err?`<div class="err">${esc(S.err)}</div>`:'';}
+function cPicker(sel){return`<div class="fld"><label>Color</label><div class="cp">${PAL.map(c=>`<button class="cd${sel===c?' s':''}" style="background:${c}" onclick="upF('color','${c}');render()"></button>`).join('')}</div></div>`;}
+function ePicker(sel){return`<div class="fld"><label>Ícono</label><div class="ep">${EMO.map(e=>`<button class="eb${sel===e?' s':''}" onclick="upF('emoji','${esc(e)}');render()">${e}</button>`).join('')}</div></div>`;}
+function curSel(sel){return`<div class="fld"><label>Moneda</label><select class="inp sel" onchange="upF('currency',this.value)">${CUR.map(c=>`<option value="${c}"${sel===c?' selected':''}>${c}</option>`).join('')}</select></div>`;}
+function mFoot(cf,cl,da=false){return`<div class="mft"><button class="btn bg" style="flex:1" onclick="closeModal()">Cancelar</button><button class="btn${da?' bd':' bw'}" style="flex:2" onclick="${cf}">${cl}</button></div>`;}
+
+/* ═══════════════════════════════════════════════════════════
+   BOOT
+═══════════════════════════════════════════════════════════ */
+async function boot(){
+  const[cr,en,tx,rc]=await Promise.all([Db.get(K.cr),Db.get(K.en),Db.get(K.tx),Db.get(K.rc)]);
+  const envs=(en||[]).map((e,i)=>({order:i,...e}));
+  let screen='setup';
+  if(cr){screen=cr.pinHash?'pin':'login';}
+  setState({screen,creds:cr,envs,txs:tx||[],rec:rc||[]});
+}
+
+/* ═══════════════════════════════════════════════════════════
+   AUTH
+═══════════════════════════════════════════════════════════ */
+async function doSetup(){
+  const{u,p,p2}=S.form;
+  if(!u?.trim()||!p)return showErr('Completá todos los campos');
+  if(p!==p2)return showErr('Las contraseñas no coinciden');
+  if(p.length<4)return showErr('Mínimo 4 caracteres');
+  const cr={username:u.trim(),passHash:await sha256(p)};
+  await Db.set(K.cr,cr);
+  setState({creds:cr,screen:'login',form:{},err:''});
+}
+async function doLogin(){
+  const{u,p}=S.lf;
+  if(!u||!p)return showErr('Completá los campos');
+  if(u===S.creds.username&&await sha256(p)===S.creds.passHash)setState({screen:'app',err:''});
+  else showErr('Usuario o contraseña incorrectos');
+}
+function doLogout(){setState({screen:S.creds?.pinHash?'pin':'login',lf:{u:'',p:''},view:'dash',activeEnv:null,modal:null,err:'',pinBuf:''});}
+
+/* ═══════════════════════════════════════════════════════════
+   PIN
+═══════════════════════════════════════════════════════════ */
+function pinPress(d){
+  if(S.pinBuf.length>=4)return;
+  const nb=S.pinBuf+d;
+  setState({pinBuf:nb,pinErr:false},true);
+  // Update dots only (no full re-render for speed)
+  document.querySelectorAll('.pd').forEach((el,i)=>{el.classList.toggle('f',i<nb.length);el.classList.remove('err');});
+  if(nb.length===4)setTimeout(()=>pinSubmit(nb),150);
+}
+function pinDel(){
+  const nb=S.pinBuf.slice(0,-1);
+  setState({pinBuf:nb,pinErr:false},true);
+  document.querySelectorAll('.pd').forEach((el,i)=>{el.classList.toggle('f',i<nb.length);el.classList.remove('err');});
+}
+async function pinSubmit(buf=S.pinBuf){
+  if(buf.length<4)return;
+  const h=await sha256(buf);
+  if(h===S.creds.pinHash){setState({screen:'app',pinBuf:'',pinErr:false});}
+  else{
+    setState({pinBuf:'',pinErr:true},true);
+    document.querySelectorAll('.pd').forEach(el=>{el.classList.remove('f');el.classList.add('err');});
+    setTimeout(()=>{document.querySelectorAll('.pd').forEach(el=>{el.classList.remove('err');});setState({pinErr:false},true);},600);
+  }
+}
+async function savePin(){
+  const{np,np2}=S.form;
+  if(!np||np.length<4)return showErr('PIN de 4 dígitos');
+  if(np!==np2)return showErr('Los PINs no coinciden');
+  const cr={...S.creds,pinHash:await sha256(np)};
+  await Db.set(K.cr,cr);setState({creds:cr,modal:null,form:{},err:''});toast$('PIN configurado');
+}
+async function removePin(){
+  const cr={...S.creds};delete cr.pinHash;
+  await Db.set(K.cr,cr);setState({creds:cr,modal:null});toast$('PIN eliminado');
+}
+function usePwd(){setState({screen:'login',pinBuf:''});}
+
+/* ═══════════════════════════════════════════════════════════
+   ENVELOPES
+═══════════════════════════════════════════════════════════ */
+function openEnv(id){const e=S.envs.find(x=>x.id===id);if(e)setState({activeEnv:e,view:'detail',filterMonth:''});}
+async function addEnv(){
+  const{name,color,emoji,currency,balance,note}=S.form;
+  if(!name?.trim())return showErr('Ingresá un nombre');
+  const id=`e${Date.now()}`;
+  const sortedEnvs=[...S.envs].sort((a,b)=>(a.order||0)-(b.order||0));
+  const maxOrder=sortedEnvs.length?sortedEnvs[sortedEnvs.length-1].order+1:0;
+  const env={id,name:name.trim(),color:color||PAL[0],emoji:emoji||'💰',currency:currency||'₡',balance:parseFloat(balance||0),note:note?.trim()||'',order:maxOrder,createdAt:new Date().toISOString()};
+  const newEnvs=[...S.envs,env];
+  let newTxs=S.txs;
+  if(env.balance>0){newTxs=[{id:`t${Date.now()}`,envelopeId:id,amount:env.balance,type:'credit',note:'Saldo inicial',date:new Date().toISOString()},...S.txs];}
+  await Db.set(K.en,newEnvs);await Db.set(K.tx,newTxs);
+  setState({envs:newEnvs,txs:newTxs,modal:null,form:{},err:''});toast$(`Sobre "${env.name}" creado`);
+}
+async function editEnv(){
+  const{name,color,emoji,currency,note}=S.form;
+  if(!name?.trim())return showErr('Ingresá un nombre');
+  const upd=S.envs.map(e=>e.id===S.activeEnv.id?{...e,name:name.trim(),color:color||e.color,emoji:emoji||e.emoji,currency:currency||e.currency,note:note?.trim()??e.note}:e);
+  await Db.set(K.en,upd);
+  setState({envs:upd,activeEnv:{...S.activeEnv,...upd.find(e=>e.id===S.activeEnv.id)},modal:null,form:{},err:''});toast$('Sobre actualizado');
+}
+async function deleteEnv(){
+  const id=S.activeEnv?.id;if(!id)return;
+  const newEnvs=S.envs.filter(e=>e.id!==id);
+  const newTxs=S.txs.filter(t=>t.envelopeId!==id);
+  const newRec=S.rec.filter(r=>r.envelopeId!==id);
+  await Db.set(K.en,newEnvs);await Db.set(K.tx,newTxs);await Db.set(K.rc,newRec);
+  setState({envs:newEnvs,txs:newTxs,rec:newRec,view:'dash',activeEnv:null,modal:null});toast$('Sobre eliminado');
+}
+
+/* ═══════════════════════════════════════════════════════════
+   TRANSACTIONS
+═══════════════════════════════════════════════════════════ */
+async function addTx(){
+  const{amount,type,note,isRec,recDay}=S.form;
+  const parsed=parseFloat(amount);
+  if(!parsed||isNaN(parsed)||parsed<=0)return showErr('Monto inválido');
+  if(!type)return showErr('Seleccioná el tipo');
+  const env=S.envs.find(e=>e.id===S.activeEnv.id);
+  const newBal=type==='credit'?env.balance+parsed:env.balance-parsed;
+  const tx={id:`t${Date.now()}`,envelopeId:S.activeEnv.id,amount:parsed,type,note:note?.trim()||'',date:new Date().toISOString()};
+  const newTxs=[tx,...S.txs];
+  const newEnvs=S.envs.map(e=>e.id===S.activeEnv.id?{...e,balance:newBal}:e);
+  let newRec=S.rec;
+  if(isRec){
+    const rt={id:`r${Date.now()}`,envelopeId:S.activeEnv.id,amount:parsed,type,note:note?.trim()||'',day:parseInt(recDay||1),lastLogged:new Date().toISOString().slice(0,7)};
+    newRec=[...S.rec,rt];
+    await Db.set(K.rc,newRec);
+  }
+  await Db.set(K.tx,newTxs);await Db.set(K.en,newEnvs);
+  setState({txs:newTxs,envs:newEnvs,rec:newRec,activeEnv:{...S.activeEnv,balance:newBal},modal:null,form:{},err:''});
+}
+
+async function addQuickTx(){
+  const{amount,type,note,envId,isRec,recDay}=S.form;
+  const parsed=parseFloat(amount);
+  if(!envId)return showErr('Seleccioná un sobre');
+  if(!parsed||isNaN(parsed)||parsed<=0)return showErr('Monto inválido');
+  if(!type)return showErr('Seleccioná el tipo');
+  const env=S.envs.find(e=>e.id===envId);
+  const newBal=type==='credit'?env.balance+parsed:env.balance-parsed;
+  const tx={id:`t${Date.now()}`,envelopeId:envId,amount:parsed,type,note:note?.trim()||'',date:new Date().toISOString()};
+  const newTxs=[tx,...S.txs];
+  const newEnvs=S.envs.map(e=>e.id===envId?{...e,balance:newBal}:e);
+  let newRec=S.rec;
+  if(isRec){
+    const rt={id:`r${Date.now()}`,envelopeId:envId,amount:parsed,type,note:note?.trim()||'',day:parseInt(recDay||1),lastLogged:new Date().toISOString().slice(0,7)};
+    newRec=[...S.rec,rt];
+    await Db.set(K.rc,newRec);
+  }
+  await Db.set(K.tx,newTxs);await Db.set(K.en,newEnvs);
+  const envName=env.name;
+  setState({txs:newTxs,envs:newEnvs,rec:newRec,modal:null,form:{},err:''});
+  toast$(`${type==='credit'?'Ingreso':'Gasto'} registrado en ${envName}`);
+}
+
+/* ═══════════════════════════════════════════════════════════
+   TRANSFER
+═══════════════════════════════════════════════════════════ */
+async function doTransfer(){
+  const{fromId,toId,amount,note}=S.form;
+  const parsed=parseFloat(amount);
+  if(!fromId||!toId)return showErr('Seleccioná los sobres');
+  if(fromId===toId)return showErr('Seleccioná sobres diferentes');
+  if(!parsed||parsed<=0)return showErr('Monto inválido');
+  const fEnv=S.envs.find(e=>e.id===fromId);
+  const tEnv=S.envs.find(e=>e.id===toId);
+  const ts=Date.now();
+  const tx1={id:`t${ts}`,  envelopeId:fromId,amount:parsed,type:'debit', note:note||`Transferencia → ${tEnv.name}`, date:new Date().toISOString()};
+  const tx2={id:`t${ts+1}`,envelopeId:toId,  amount:parsed,type:'credit',note:note||`Transferencia ← ${fEnv.name}`, date:new Date().toISOString()};
+  const newTxs=[tx2,tx1,...S.txs];
+  const newEnvs=S.envs.map(e=>{
+    if(e.id===fromId)return{...e,balance:e.balance-parsed};
+    if(e.id===toId)  return{...e,balance:e.balance+parsed};
+    return e;
+  });
+  await Db.set(K.tx,newTxs);await Db.set(K.en,newEnvs);
+  let patch={txs:newTxs,envs:newEnvs,modal:null,form:{},err:''};
+  if(S.activeEnv)patch.activeEnv=newEnvs.find(e=>e.id===S.activeEnv.id)||S.activeEnv;
+  setState(patch);toast$('Transferencia realizada');
+}
+
+/* ═══════════════════════════════════════════════════════════
+   RECURRING
+═══════════════════════════════════════════════════════════ */
+function getDueRec(){
+  const m=new Date().toISOString().slice(0,7);
+  return S.rec.filter(r=>r.lastLogged!==m);
+}
+async function logRec(id){
+  const r=S.rec.find(x=>x.id===id);if(!r)return;
+  const env=S.envs.find(e=>e.id===r.envelopeId);if(!env)return;
+  const newBal=r.type==='credit'?env.balance+r.amount:env.balance-r.amount;
+  const tx={id:`t${Date.now()}`,envelopeId:r.envelopeId,amount:r.amount,type:r.type,note:r.note||'Recurrente',date:new Date().toISOString()};
+  const newTxs=[tx,...S.txs];
+  const newEnvs=S.envs.map(e=>e.id===r.envelopeId?{...e,balance:newBal}:e);
+  const m=new Date().toISOString().slice(0,7);
+  const newRec=S.rec.map(x=>x.id===id?{...x,lastLogged:m}:x);
+  await Db.set(K.tx,newTxs);await Db.set(K.en,newEnvs);await Db.set(K.rc,newRec);
+  let patch={txs:newTxs,envs:newEnvs,rec:newRec};
+  if(S.activeEnv?.id===r.envelopeId)patch.activeEnv={...S.activeEnv,balance:newBal};
+  setState(patch);toast$('Registrado');
+}
+async function delRec(id){
+  const nr=S.rec.filter(r=>r.id!==id);
+  await Db.set(K.rc,nr);setState({rec:nr});toast$('Recordatorio eliminado');
+}
+
+/* ═══════════════════════════════════════════════════════════
+   BACKUP & PASSWORD
+═══════════════════════════════════════════════════════════ */
+function exportBk(){
+  const d=JSON.stringify({version:'2.0',exportedAt:new Date().toISOString(),credentials:S.creds,envelopes:S.envs,transactions:S.txs,recurring:S.rec},null,2);
+  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([d],{type:'application/json'}));a.download=`bruntvault_backup_${new Date().toISOString().slice(0,10)}.json`;a.click();toast$('Backup exportado');
+}
+async function importBk(file){
+  try{
+    const d=JSON.parse(await file.text());
+    if(!d.credentials||!d.envelopes)throw new Error('Formato no válido');
+    await Db.set(K.cr,d.credentials);await Db.set(K.en,d.envelopes);await Db.set(K.tx,d.transactions||[]);await Db.set(K.rc,d.recurring||[]);
+    setState({creds:d.credentials,envs:d.envelopes,txs:d.transactions||[],rec:d.recurring||[],screen:'login',view:'dash',activeEnv:null,modal:null,err:''});toast$('Backup restaurado');
+  }catch(ex){showErr('Error: '+ex.message);}
+}
+async function changePass(){
+  const{op,np,np2}=S.form;
+  if(!op||!np)return showErr('Completá los campos');
+  if(np!==np2)return showErr('Las contraseñas no coinciden');
+  if(np.length<4)return showErr('Mínimo 4 caracteres');
+  if(await sha256(op)!==S.creds.passHash)return showErr('Contraseña actual incorrecta');
+  const cr={...S.creds,passHash:await sha256(np)};await Db.set(K.cr,cr);
+  setState({creds:cr,modal:null,form:{},err:''});toast$('Contraseña actualizada');
+}
+
+/* ═══════════════════════════════════════════════════════════
+   CSV EXPORT
+═══════════════════════════════════════════════════════════ */
+function exportCSV(){
+  const env=S.activeEnv;if(!env)return;
+  let txs=S.txs.filter(t=>t.envelopeId===env.id);
+  if(S.filterMonth)txs=txs.filter(t=>mStr(t.date)===S.filterMonth);
+  const rows=[['Fecha','Tipo','Monto','Descripcion'],...txs.map(t=>[new Date(t.date).toISOString().slice(0,10),t.type==='credit'?'Ingreso':'Retiro',t.amount.toFixed(2),t.note||''])];
+  const csv=rows.map(r=>r.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n');
+  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));a.download=`${env.name.replace(/\s+/g,'_')}_movimientos.csv`;a.click();toast$('CSV exportado');
+}
+
+/* ═══════════════════════════════════════════════════════════
+   DRAG & DROP
+═══════════════════════════════════════════════════════════ */
+function dStart(e,id){_dragId=id;e.dataTransfer.effectAllowed='move';setTimeout(()=>{const el=document.querySelector(`[data-eid="${id}"]`);if(el)el.classList.add('dragging');},0);}
+function dOver(e,id){e.preventDefault();if(id===_dragId)return;_dragOvId=id;document.querySelectorAll('.ec').forEach(el=>el.classList.remove('drag-over'));const el=document.querySelector(`[data-eid="${id}"]`);if(el)el.classList.add('drag-over');}
+function dDrop(e,id){e.preventDefault();if(!_dragId||!_dragOvId||_dragId===_dragOvId)return;const sorted=[...S.envs].sort((a,b)=>(a.order||0)-(b.order||0));const fi=sorted.findIndex(e=>e.id===_dragId);const ti=sorted.findIndex(e=>e.id===_dragOvId);if(fi===-1||ti===-1)return;const re=[...sorted];const[rm]=re.splice(fi,1);re.splice(ti,0,rm);const ne=re.map((env,i)=>({...env,order:i}));Db.set(K.en,ne);setState({envs:ne});}
+function dEnd(e){document.querySelectorAll('.ec').forEach(el=>{el.classList.remove('dragging','drag-over');});_dragId=null;_dragOvId=null;}
+
+/* ═══════════════════════════════════════════════════════════
+   MODAL
+═══════════════════════════════════════════════════════════ */
+function openModal(tp,d={}){
+  let form={...d};
+  if(tp==='edit-env'&&S.activeEnv)form={name:S.activeEnv.name,color:S.activeEnv.color,emoji:S.activeEnv.emoji,currency:S.activeEnv.currency,note:S.activeEnv.note,...form};
+  if(tp==='transfer'&&S.activeEnv)form={fromId:S.activeEnv.id,...form};
+  setState({modal:tp,form,err:''});
+}
+function closeModal(){setState({modal:null,form:{},err:''});}
+function pickType(t){S.form={...S.form,type:t};render();}
+function toggleRec(v){S.form={...S.form,isRec:v};render();}
+
+/* ═══════════════════════════════════════════════════════════
+   TREND CALC
+═══════════════════════════════════════════════════════════ */
+function getTrend(envId,balance){
+  const m=new Date().toISOString().slice(0,7);
+  const mTxs=S.txs.filter(t=>t.envelopeId===envId&&mStr(t.date)===m);
+  const net=mTxs.reduce((s,t)=>t.type==='credit'?s+t.amount:s-t.amount,0);
+  const prev=balance-net;
+  if(prev===0&&net===0)return null;
+  if(prev===0)return{pct:null,up:net>0};
+  const pct=((balance-prev)/Math.abs(prev)*100);
+  return{pct:Math.abs(pct).toFixed(1),up:pct>=0};
+}
+
+/* ═══════════════════════════════════════════════════════════
+   DONUT CHART
+═══════════════════════════════════════════════════════════ */
+function buildDonut(envs){
+  const pos=envs.filter(e=>e.balance>0);
+  const total=pos.reduce((s,e)=>s+e.balance,0);
+  if(!pos.length||total<=0){
+    return`<svg viewBox="0 0 120 120" width="120" height="120"><circle cx="60" cy="60" r="42" fill="none" stroke="#1a1a1a" stroke-width="14"/><text x="60" y="65" text-anchor="middle" fill="#2a2a2a" font-size="10" font-family="DM Sans,sans-serif">Sin datos</text></svg>`;
+  }
+  const R=42,CX=60,CY=60,SW=14,GAP=3;
+  const circ=2*Math.PI*R;
+  let cum=0;
+  const slices=pos.map(env=>{
+    const len=Math.max(0,(env.balance/total)*circ-GAP);
+    const off=-cum;
+    cum+=(env.balance/total)*circ;
+    return`<circle cx="${CX}" cy="${CY}" r="${R}" fill="none" stroke="${env.color}" stroke-width="${SW}" stroke-dasharray="${len} ${circ}" stroke-dashoffset="${off}" transform="rotate(-90 ${CX} ${CY})" class="donut-svg"/>`;
+  });
+  return`<svg viewBox="0 0 120 120" width="120" height="120" style="flex-shrink:0"><circle cx="${CX}" cy="${CY}" r="${R}" fill="none" stroke="#141414" stroke-width="${SW}"/>${slices.join('')}<text x="${CX}" y="${CY-4}" text-anchor="middle" fill="#555" font-size="9" font-family="DM Sans,sans-serif" font-weight="600">SOBRES</text><text x="${CX}" y="${CY+8}" text-anchor="middle" fill="#999" font-size="16" font-family="DM Sans,sans-serif" font-weight="800">${pos.length}</text></svg>`;
+}
+function buildLegend(envs){
+  const pos=envs.filter(e=>e.balance>0);
+  const total=pos.reduce((s,e)=>s+e.balance,0);
+  if(!pos.length)return'';
+  return`<div class="donut-legend">${pos.slice(0,4).map(e=>{const pct=total>0?Math.round(e.balance/total*100):0;return`<div class="dl-item"><div style="width:8px;height:8px;border-radius:50%;background:${e.color};flex-shrink:0"></div><span style="color:#333">${esc(e.emoji||'')}</span><span style="flex:1;overflow:hidden;text-overflow:ellipsis">${esc(e.name)}</span><span style="color:#2a2a2a;margin-left:auto;padding-left:8px">${pct}%</span></div>`}).join('')}${pos.length>4?`<div class="dl-item" style="color:#252525">+${pos.length-4} más</div>`:''}</div>`;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   RENDER
+═══════════════════════════════════════════════════════════ */
+function render(){
+  document.getElementById('app').innerHTML=buildPage();
+  wire();
+}
+function buildPage(){
+  const{screen,toast,modal}=S;
+  let h='';
+  if(screen==='loading')h=`<div class="ctr"><div class="spin"></div></div>`;
+  else if(screen==='setup')h=buildSetup();
+  else if(screen==='login')h=buildLogin();
+  else if(screen==='pin')h=buildPin();
+  else if(screen==='app')h=buildApp();
+  if(modal)h+=buildModal();
+  if(toast)h+=`<div class="toast">✓ &nbsp;${esc(toast)}</div>`;
+  return h;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   AUTH SCREENS
+═══════════════════════════════════════════════════════════ */
+function authShell(tag,body){
+  return`<div class="ctr"><div class="aw">
+    <div style="text-align:center;margin-bottom:36px">
+      <div><div class="ai">⬡</div></div>
+      <h1 style="font-size:26px;font-weight:800;letter-spacing:-.5px;margin-top:16px;color:#fff">BruntVault</h1>
+      <p style="color:#1e1e1e;font-size:13px;margin-top:8px">Sistema de finanzas personales</p>
+    </div>
+    <div class="card" style="padding:32px">
+      <p style="color:#777;font-size:15px;font-weight:600;margin-bottom:22px">${tag}</p>
+      ${errH()}${body}
+    </div>
+    <p style="color:#161616;font-size:11px;text-align:center;margin-top:20px">Datos locales · SHA-256</p>
+  </div></div>`;
+}
+function buildSetup(){
+  return authShell('Crear cuenta',`
+    ${fld('Usuario',inp('su','text','Tu nombre de usuario',S.form.u))}
+    ${fld('Contraseña',inp('sp','password','Mínimo 4 caracteres',S.form.p))}
+    ${fld('Confirmar contraseña',inp('sp2','password','Repetí la contraseña',S.form.p2))}
+    <button class="btn bw bf" onclick="doSetup()">Crear cuenta →</button>`);
+}
+function buildLogin(){
+  return authShell('Iniciar sesión',`
+    ${fld('Usuario',`<input class="inp" id="lu" type="text" placeholder="Tu usuario" value="${esc(S.lf.u||'')}">`)}
+    ${fld('Contraseña',`<input class="inp" id="lp" type="password" placeholder="Tu contraseña" value="${esc(S.lf.p||'')}">`)}
+    <button class="btn bw bf" onclick="doLogin()">Ingresar →</button>`);
+}
+function buildPin(){
+  const buf=S.pinBuf||'';
+  const dots=[0,1,2,3].map(i=>`<div class="pd${i<buf.length?' f':''}"></div>`).join('');
+  const pad=[[1,2,3],[4,5,6],[7,8,9],['del',0,'ok']];
+  const btns=pad.map(row=>row.map(k=>{
+    if(k==='del')return`<button class="pp del" onclick="pinDel()">⌫</button>`;
+    if(k==='ok') return`<button class="pp" style="color:#888" onclick="pinSubmit()">→</button>`;
+    return`<button class="pp" onclick="pinPress('${k}')">${k}</button>`;
+  }).join('')).join('');
+  return`<div class="ctr"><div class="pin-wrap">
+    <div class="ai" style="margin:0 auto">⬡</div>
+    <h2 style="color:#fff;font-size:20px;font-weight:800;margin-top:16px">BruntVault</h2>
+    <p style="color:#2a2a2a;font-size:13px;margin-top:6px">Ingresá tu PIN</p>
+    <div class="pin-dots">${dots}</div>
+    <div class="pin-pad">${btns}</div>
+    <button onclick="usePwd()" style="background:none;border:none;color:#2a2a2a;font-size:12px;cursor:pointer;margin-top:24px;font-family:var(--fn)">Usar contraseña completa</button>
+  </div></div>`;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   APP SHELL
+═══════════════════════════════════════════════════════════ */
+function buildApp(){
+  const{view,creds}=S;
+  const inDash=view==='dash',inDet=view==='detail',inSet=view==='settings';
+  const back=(inDet||inSet)?`<button class="bkb" onclick="setState({view:'dash',activeEnv:null,filterMonth:''})">←</button>`:'';
+  let body='';
+  if(inDash)body=buildDash();
+  else if(inDet)body=buildDetail();
+  else if(inSet)body=buildSettings();
+  return`<header class="hdr">
+    <div class="hl">${back}<span style="color:#fff;font-weight:800;font-size:15px;letter-spacing:-.3px">⬡ BruntVault</span></div>
+    <div class="hr">
+      <button class="nb${inDash?' on':''}" onclick="setState({view:'dash',activeEnv:null})">Sobres</button>
+      <button class="nb${inSet?' on':''}" onclick="setState({view:'settings'})">Ajustes</button>
+      <div class="nsep"></div>
+      <span style="color:#222;font-size:12px">${esc(creds?.username||'')}</span>
+      <button class="ob" onclick="doLogout()">Salir</button>
+    </div>
+  </header>
+  <main class="main">${body}</main>`;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   DASHBOARD
+═══════════════════════════════════════════════════════════ */
+function buildDash(){
+  const{envs,txs}=S;
+  const sorted=[...envs].sort((a,b)=>(a.order||0)-(b.order||0));
+  const totals=envs.reduce((acc,e)=>{const s=e.currency||'₡';acc[s]=(acc[s]||0)+(e.balance||0);return acc;},{});
+  const te=Object.entries(totals);
+  const totH=te.length?te.map(([s,v])=>`<p style="color:${v<0?'#ef4444':'#fff'};font-size:${te.length>1?26:40}px;font-weight:800;letter-spacing:-1px;line-height:1.1;margin-bottom:4px">${esc(money(v,s))}</p>`).join(''):`<p style="color:#202020;font-size:40px;font-weight:800">₡ 0</p>`;
+
+  // Recurring reminders
+  const due=getDueRec();
+  const recBanner=due.length?`
+    <div class="rec-banner">
+      <p style="color:#f59e0b;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;margin-bottom:12px">📅 Recordatorios del mes</p>
+      ${due.map(r=>{const env=envs.find(e=>e.id===r.envelopeId);return`
+        <div class="rec-item">
+          <div>
+            <span style="font-size:16px;margin-right:8px">${esc(env?.emoji||'💰')}</span>
+            <span style="color:#ddd;font-weight:600;font-size:13px">${esc(env?.name||'')}</span>
+            <span style="color:#333;font-size:13px"> · ${r.type==='credit'?'+':'−'}${esc(money(r.amount,env?.currency||'₡'))}</span>
+            ${r.note?`<span style="color:#252525;font-size:12px"> — ${esc(r.note)}</span>`:''}
+            <span style="color:#252525;font-size:11px;display:block;margin-top:2px">Día ${r.day} de cada mes</span>
+          </div>
+          <div style="display:flex;gap:6px;flex-shrink:0;margin-left:12px">
+            <button onclick="logRec('${r.id}')" style="background:#10b98115;border:1px solid #10b98128;color:#10b981;border-radius:7px;padding:5px 12px;font-size:12px;cursor:pointer;font-family:var(--fn);font-weight:600">Registrar</button>
+            <button onclick="delRec('${r.id}')" style="background:none;border:1px solid var(--ibdr);color:#333;border-radius:7px;padding:5px 10px;font-size:11px;cursor:pointer;font-family:var(--fn)">✕</button>
+          </div>
+        </div>`}).join('')}
+    </div>`:''
+
+  // Envelope cards
+  const cards=sorted.length?`<div class="grid">${sorted.map((e,i)=>envCard(e,i)).join('')}</div>`:`
+    <div class="card empty" style="text-align:center;padding:56px">
+      <div style="font-size:44px;margin-bottom:18px;opacity:.1">⬡</div>
+      <p style="color:#252525;font-weight:600;margin-bottom:8px">Sin sobres todavía</p>
+      <p style="color:#1a1a1a;font-size:13px;margin-bottom:28px">Creá tu primer sobre para empezar</p>
+      <button class="btn bw" onclick="openModal('add-env')">Crear sobre</button>
+    </div>`;
+
+  return`<div class="screen">
+    <div class="hero">
+      <div style="flex-shrink:0">
+        ${buildDonut(sorted)}
+        ${buildLegend(sorted)}
+      </div>
+      <div class="hero-r">
+        <p style="color:#252525;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.1em;margin-bottom:10px">Balance total</p>
+        ${totH}
+        <p style="color:#1e1e1e;font-size:13px;margin-top:10px">${envs.length} sobre${envs.length!==1?'s':''} · ${txs.length} movimiento${txs.length!==1?'s':''}</p>
+      </div>
+    </div>
+    ${recBanner}
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;flex-wrap:wrap;gap:12px">
+      <h2 style="font-size:17px;font-weight:700;letter-spacing:-.3px">Mis sobres</h2>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        ${sorted.length?`<button class="btn" style="background:#10b98115;border:1px solid #10b98128;color:#10b981;padding:8px 14px;font-size:13px;font-weight:600" onclick="openModal('quick-tx',{type:'credit'})">↑ Ingresar</button><button class="btn" style="background:#ef444415;border:1px solid #ef444428;color:#ef4444;padding:8px 14px;font-size:13px;font-weight:600" onclick="openModal('quick-tx',{type:'debit'})">↓ Registrar gasto</button>`:''}
+        <button class="btn bw" style="padding:8px 16px;font-size:13px;font-weight:700" onclick="openModal('add-env')">+ Sobre</button>
+      </div>
+    </div>
+    ${cards}
+  </div>`;
+}
+
+function envCard(env,i){
+  const tr=getTrend(env.id,env.balance);
+  const trendH=tr?`<span class="trend ${tr.up?'t-up':'t-dn'}">${tr.up?'↑':'↓'} ${tr.pct?tr.pct+'%':'este mes'}</span>`:`<span class="trend t-nt">→ sin cambio</span>`;
+  const bal=money(env.balance,env.currency);
+  return`<div class="ec" data-eid="${env.id}" style="border-left:2.5px solid ${env.color};cursor:pointer"
+    onclick="openEnv('${env.id}')"
+    ondragover="dOver(event,'${env.id}')" ondrop="dDrop(event,'${env.id}')"
+    onmouseenter="this.style.boxShadow='0 10px 30px ${env.color}18'" onmouseleave="this.style.boxShadow='none'">
+    <span class="drag-handle" title="Arrastrá para ordenar"
+      draggable="true"
+      ondragstart="event.stopPropagation();dStart(event,'${env.id}')"
+      ondragend="dEnd(event)"
+      onclick="event.stopPropagation()">⠿</span>
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
+      <div style="width:36px;height:36px;border-radius:10px;background:${env.color}18;display:flex;align-items:center;justify-content:center;font-size:18px">${esc(env.emoji||'💰')}</div>
+      <div style="flex:1;min-width:0">
+        <p style="color:#3a3a3a;font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(env.name)}</p>
+        ${trendH}
+      </div>
+    </div>
+    <p style="color:${env.balance<0?'#ef4444':'#fff'};font-size:22px;font-weight:800;letter-spacing:-.5px">${esc(bal)}</p>
+  </div>`;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   DETAIL
+═══════════════════════════════════════════════════════════ */
+function buildDetail(){
+  const{activeEnv,txs,filterMonth}=S;
+  if(!activeEnv)return'';
+  let et=txs.filter(t=>t.envelopeId===activeEnv.id);
+  const months=[...new Set(et.map(t=>mStr(t.date)))].sort().reverse();
+  if(filterMonth)et=et.filter(t=>mStr(t.date)===filterMonth);
+  const tr=getTrend(activeEnv.id,activeEnv.balance);
+  const trendH=tr?`<span class="trend ${tr.up?'t-up':'t-dn'}" style="font-size:12px">${tr.up?'↑':'↓'} ${tr.pct?tr.pct+'%':'movimiento'} este mes</span>`:'';
+  const monthOpts=`<option value="">Todos los meses</option>${months.map(m=>`<option value="${m}"${filterMonth===m?' selected':''}>${new Date(m+'-15').toLocaleDateString('es-CR',{month:'long',year:'numeric'})}</option>`).join('')}`;
+  const notesH=activeEnv.note?`<div class="notes-card">📝 ${esc(activeEnv.note)}</div>`:'';
+  const txRows=et.length?et.map((tx,i)=>`
+    <div class="tx" style="animation:sl .2s ease both;animation-delay:${i*25}ms">
+      <div style="display:flex;align-items:center">
+        <div class="txi" style="background:${tx.type==='credit'?'#10b98110':'#ef444410'};color:${tx.type==='credit'?'#10b981':'#ef4444'}">${tx.type==='credit'?'↑':'↓'}</div>
+        <div>
+          <p style="color:#e0e0e0;font-size:14px;font-weight:500;margin-bottom:2px">${esc(tx.note||(tx.type==='credit'?'Ingreso':'Retiro'))}</p>
+          <p style="color:#252525;font-size:12px">${dStr(tx.date)}</p>
+        </div>
+      </div>
+      <span style="color:${tx.type==='credit'?'#10b981':'#ef4444'};font-weight:700;font-size:15px">${tx.type==='credit'?'+':'−'}${esc(money(tx.amount,activeEnv.currency))}</span>
+    </div>`).join(''):`<div class="card" style="padding:36px;text-align:center"><p style="color:#222">Sin movimientos${filterMonth?' en este mes':''}</p></div>`;
+
+  return`<div class="screen">
+    <div class="card" style="padding:28px;margin-bottom:18px;border-top:2px solid ${activeEnv.color}">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:16px">
+        <div>
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+            <div style="width:40px;height:40px;border-radius:11px;background:${activeEnv.color}18;display:flex;align-items:center;justify-content:center;font-size:20px">${esc(activeEnv.emoji||'💰')}</div>
+            <div>
+              <p style="color:#3a3a3a;font-size:11px;text-transform:uppercase;letter-spacing:.08em">Sobre</p>
+              <h1 style="color:#f5f5f5;font-size:22px;font-weight:800;letter-spacing:-.5px">${esc(activeEnv.name)}</h1>
+            </div>
+          </div>
+          <p style="color:${activeEnv.balance<0?'#ef4444':'#fff'};font-size:38px;font-weight:800;letter-spacing:-1.5px;line-height:1">${esc(money(activeEnv.balance,activeEnv.currency))}</p>
+          <div style="margin-top:8px">${trendH}</div>
+          ${notesH}
+        </div>
+        <div style="display:flex;gap:8px;flex-shrink:0">
+          <button class="btn" style="background:#141414;border:1px solid #1e1e1e;color:#666;padding:8px 14px;font-size:13px" onclick="openModal('edit-env')">Editar</button>
+          <button class="btn bd" style="padding:8px 14px;font-size:13px" onclick="openModal('delete-env')">Eliminar</button>
+        </div>
+      </div>
+      <div class="ar">
+        <button class="ac ai-in" onclick="openModal('add-tx',{type:'credit'})">↑ Ingresar</button>
+        <button class="ac ai-out" onclick="openModal('add-tx',{type:'debit'})">↓ Retirar</button>
+        <button class="ac ai-tr" onclick="openModal('transfer')">⇄ Transferir</button>
+      </div>
+    </div>
+    <div class="mf-row">
+      <div style="display:flex;align-items:center;gap:8px">
+        <p style="color:#252525;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em">Movimientos (${et.length})</p>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center">
+        ${months.length?`<select onchange="setState({filterMonth:this.value})">${monthOpts}</select>`:''}
+        ${et.length?`<button onclick="exportCSV()" style="background:#141414;border:1px solid #1e1e1e;color:#555;border-radius:8px;padding:6px 12px;font-size:11px;font-weight:600;cursor:pointer;font-family:var(--fn)">CSV ↓</button>`:''}
+      </div>
+    </div>
+    ${txRows}
+  </div>`;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   SETTINGS
+═══════════════════════════════════════════════════════════ */
+function buildSettings(){
+  const{creds,envs,txs,rec}=S;
+  const totals=envs.reduce((acc,e)=>{const s=e.currency||'₡';acc[s]=(acc[s]||0)+(e.balance||0);return acc;},{});
+  const stats=[['Sobres',envs.length],['Movimientos',txs.length],['Recurrentes',rec.length],...Object.entries(totals).map(([s,v])=>[`Total ${s}`,money(v,s)])];
+  const pinSection=creds?.pinHash?`
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-top:12px;padding-top:12px;border-top:1px solid var(--dim)">
+      <div><p style="color:#e0e0e0;font-size:14px;font-weight:500">PIN configurado</p><p style="color:#252525;font-size:12px;margin-top:2px">4 dígitos · activo en el próximo inicio</p></div>
+      <div style="display:flex;gap:8px">
+        <button class="btn" style="background:#141414;border:1px solid #1e1e1e;color:#666;padding:7px 12px;font-size:12px" onclick="openModal('pin-setup')">Cambiar</button>
+        <button class="btn bd" style="padding:7px 12px;font-size:12px" onclick="openModal('pin-remove')">Quitar</button>
+      </div>
+    </div>`:`
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-top:12px;padding-top:12px;border-top:1px solid var(--dim)">
+      <div><p style="color:#3a3a3a;font-size:14px">Sin PIN configurado</p><p style="color:#1e1e1e;font-size:12px;margin-top:2px">Acceso rápido con 4 dígitos</p></div>
+      <button class="btn bw" style="padding:7px 14px;font-size:12px" onclick="openModal('pin-setup')">Configurar PIN</button>
+    </div>`;
+  const errMsg=S.err?`<p style="color:#ef4444;font-size:13px;margin-top:12px">${esc(S.err)}</p>`:'';
+  return`<div class="screen" style="max-width:520px">
+    <h2 style="font-size:22px;font-weight:800;letter-spacing:-.5px;margin-bottom:28px">Ajustes</h2>
+    <div class="card" style="padding:24px;margin-bottom:14px">
+      <p style="color:#252525;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;margin-bottom:16px">Cuenta</p>
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <div><p style="color:#e0e0e0;font-weight:600;margin-bottom:3px">@${esc(creds?.username||'')}</p><p style="color:#252525;font-size:13px">Contraseña cifrada · SHA-256</p></div>
+        <button class="btn" style="background:#141414;border:1px solid #1e1e1e;color:#666;padding:8px 14px;font-size:13px" onclick="openModal('change-pass')">Cambiar</button>
+      </div>
+      ${pinSection}
+    </div>
+    <div class="card" style="padding:24px;margin-bottom:14px">
+      <p style="color:#252525;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;margin-bottom:12px">Respaldo de datos</p>
+      <p style="color:#1e1e1e;font-size:13px;line-height:1.7;margin-bottom:18px">Exportá todos tus datos en JSON para transferirlos a otro dispositivo.</p>
+      <div style="display:flex;gap:10px">
+        <button class="btn" style="flex:1;background:#141414;border:1px solid #1e1e1e;color:#ccc;padding:11px;font-size:13px;font-weight:600" onclick="exportBk()">↓ Exportar</button>
+        <button class="btn" style="flex:1;background:#141414;border:1px solid #1e1e1e;color:#ccc;padding:11px;font-size:13px;font-weight:600" onclick="document.getElementById('fi').click()">↑ Importar</button>
+      </div>
+      <input id="fi" type="file" accept=".json" style="display:none">
+      ${errMsg}
+    </div>
+    <div class="card" style="padding:24px">
+      <p style="color:#252525;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px">Estadísticas</p>
+      <div class="sg">${stats.map(([l,v])=>`<div class="sb"><p style="color:#252525;font-size:10px;text-transform:uppercase;letter-spacing:.06em;margin-bottom:5px">${esc(String(l))}</p><p style="color:#e0e0e0;font-size:18px;font-weight:700;letter-spacing:-.5px">${esc(String(v))}</p></div>`).join('')}</div>
+    </div>
+  </div>`;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   MODALS
+═══════════════════════════════════════════════════════════ */
+function buildModal(){
+  const{modal,form,activeEnv,envs}=S;
+  let title='',body='';
+  const sel=form.color||PAL[0];
+  const sEmo=form.emoji||'💰';
+
+  if(modal==='add-env'){
+    title='Nuevo sobre';
+    body=`${errH()}
+      ${fld('Nombre',inp('mn','text','ej: Ahorro, Hacienda, Gimnasio...',form.name))}
+      ${ePicker(sEmo)}${cPicker(sel)}${curSel(form.currency||'₡')}
+      ${fld('Notas (opcional)',`<textarea class="inp" id="mno" placeholder="Número de cuenta, instrucciones...">${esc(form.note||'')}</textarea>`)}
+      ${fld('Saldo inicial (opcional)',inp('mb','number','0',form.balance))}
+      ${mFoot('addEnv()','Crear sobre')}`;
+  }
+  if(modal==='edit-env'){
+    title='Editar sobre';
+    body=`${errH()}
+      ${fld('Nombre',inp('mn','text','',form.name))}
+      ${ePicker(sEmo)}${cPicker(sel)}${curSel(form.currency||activeEnv?.currency||'₡')}
+      ${fld('Notas',`<textarea class="inp" id="mno" placeholder="Número de cuenta, instrucciones...">${esc(form.note||'')}</textarea>`)}
+      ${mFoot('editEnv()','Guardar')}`;
+  }
+  if(modal==='delete-env'){
+    title='Eliminar sobre';
+    body=`<p style="color:#666;line-height:1.6;margin-bottom:24px">¿Seguro que querés eliminar <strong style="color:#f0f0f0">${esc(activeEnv?.name||'')}</strong>? Se perderán todos sus movimientos y recordatorios.</p>
+      ${mFoot('deleteEnv()','Eliminar',true)}`;
+  }
+  if(modal==='add-tx'){
+    const t=form.type;
+    const tBtn=(v,l)=>`<button class="tb" onclick="pickType('${v}')" style="border:1px solid;border-color:${t===v?(v==='credit'?'#10b981':'#ef4444'):'var(--ibdr)'};background:${t===v?(v==='credit'?'#10b98115':'#ef444415'):'transparent'};color:${t===v?(v==='credit'?'#10b981':'#ef4444'):'#333'}">${l}</button>`;
+    const recExtra=form.isRec?fld('Día del mes',inp('mrd','number','15',form.recDay,'min="1" max="31"')):'';
+    title='Registrar movimiento';
+    body=`${errH()}
+      <div style="display:flex;gap:8px;margin-bottom:20px">${tBtn('credit','↑ Ingreso')}${tBtn('debit','↓ Retiro')}</div>
+      ${fld(`Monto (${activeEnv?.currency||'₡'})`,inp('ma','number','0',form.amount))}
+      ${fld('Descripción (opcional)',inp('mn2','text','ej: Pago mensual, Salario...',form.note))}
+      <div class="fld" style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
+        <input type="checkbox" id="mrec" ${form.isRec?'checked':''} onchange="toggleRec(this.checked)">
+        <label for="mrec" style="color:#3a3a3a;font-size:13px;cursor:pointer;text-transform:none;letter-spacing:0;font-weight:normal">Guardar como recordatorio mensual</label>
+      </div>
+      ${recExtra}
+      ${mFoot('addTx()','Confirmar')}`;
+  }
+  if(modal==='transfer'){
+    const otherEnvs=envs.filter(e=>true);
+    const fromOpts=otherEnvs.map(e=>`<option value="${e.id}"${form.fromId===e.id?' selected':''}>${esc(e.emoji||'')} ${esc(e.name)} · ${esc(money(e.balance,e.currency))}</option>`).join('');
+    const toOpts=`<option value="">Seleccioná destino...</option>`+otherEnvs.filter(e=>e.id!==form.fromId).map(e=>`<option value="${e.id}"${form.toId===e.id?' selected':''}>${esc(e.emoji||'')} ${esc(e.name)} · ${esc(money(e.balance,e.currency))}</option>`).join('');
+    title='Transferir entre sobres';
+    body=`${errH()}
+      ${fld('Desde',`<select class="inp sel" onchange="upF('fromId',this.value)">${fromOpts}</select>`)}
+      ${fld('Hacia',`<select class="inp sel" id="tto" onchange="upF('toId',this.value)">${toOpts}</select>`)}
+      ${fld('Monto',inp('ma','number','0',form.amount))}
+      ${fld('Descripción (opcional)',inp('mn2','text','',form.note))}
+      ${mFoot('doTransfer()','Transferir')}`;
+  }
+  if(modal==='change-pass'){
+    title='Cambiar contraseña';
+    body=`${errH()}
+      ${fld('Contraseña actual',inp('mp1','password','••••••',form.op))}
+      ${fld('Nueva contraseña',inp('mp2','password','Mínimo 4 caracteres',form.np))}
+      ${fld('Confirmar nueva',inp('mp3','password','Repetí la nueva',form.np2))}
+      ${mFoot('changePass()','Actualizar')}`;
+  }
+  if(modal==='pin-setup'){
+    title='Configurar PIN';
+    body=`${errH()}
+      <p style="color:#333;font-size:13px;margin-bottom:20px;line-height:1.6">El PIN de 4 dígitos te permite abrir BruntVault rápidamente sin escribir tu contraseña completa.</p>
+      ${fld('Nuevo PIN (4 dígitos)',inp('mp1','password','••••',form.np,'maxlength="4"'))}
+      ${fld('Confirmar PIN',inp('mp2','password','••••',form.np2,'maxlength="4"'))}
+      ${mFoot('savePin()','Guardar PIN')}`;
+  }
+  if(modal==='pin-remove'){
+    title='Quitar PIN';
+    body=`<p style="color:#666;line-height:1.6;margin-bottom:24px">¿Seguro que querés quitar el PIN? Tendrás que usar tu contraseña completa cada vez que inicies sesión.</p>
+      ${mFoot('removePin()','Quitar PIN',true)}`;
+  }
+  if(modal==='quick-tx'){
+    const t=form.type||'debit';
+    const tBtn=(v,l)=>`<button class="tb" onclick="pickType('${v}')" style="border:1px solid;border-color:${t===v?(v==='credit'?'#10b981':'#ef4444'):'var(--ibdr)'};background:${t===v?(v==='credit'?'#10b98115':'#ef444415'):'transparent'};color:${t===v?(v==='credit'?'#10b981':'#ef4444'):'#333'}">${l}</button>`;
+    const envOpts=`<option value="">Seleccioná un sobre...</option>`+[...envs].sort((a,b)=>(a.order||0)-(b.order||0)).map(e=>`<option value="${e.id}"${form.envId===e.id?' selected':''}>${esc(e.emoji||'')} ${esc(e.name)} · ${esc(money(e.balance,e.currency))}</option>`).join('');
+    const cur=form.envId?(envs.find(e=>e.id===form.envId)?.currency||'₡'):'₡';
+    const recExtra=form.isRec?fld('Día del mes',inp('mrd','number','15',form.recDay,'min="1" max="31"')):'';
+    title=t==='credit'?'Ingresar a un sobre':'Registrar gasto';
+    body=`${errH()}
+      <div style="display:flex;gap:8px;margin-bottom:20px">${tBtn('credit','↑ Ingreso')}${tBtn('debit','↓ Gasto')}</div>
+      ${fld('Sobre',`<select class="inp sel" id="qenv" onchange="upF('envId',this.value)">${envOpts}</select>`)}
+      ${fld(`Monto (${cur})`,inp('ma','number','0',form.amount))}
+      ${fld('Descripción (opcional)',inp('mn2','text','ej: Supermercado, Salario...',form.note))}
+      <div class="fld" style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
+        <input type="checkbox" id="mrec" ${form.isRec?'checked':''} onchange="toggleRec(this.checked)">
+        <label for="mrec" style="color:#3a3a3a;font-size:13px;cursor:pointer;text-transform:none;letter-spacing:0;font-weight:normal">Guardar como recordatorio mensual</label>
+      </div>
+      ${recExtra}
+      ${mFoot('addQuickTx()','Confirmar')}`;
+  }
+
+  return`<div class="ov" onclick="closeModal()">
+    <div class="mb" onclick="event.stopPropagation()">
+      <div class="mhdr"><h2>${esc(title)}</h2><button onclick="closeModal()">✕</button></div>
+      ${body}
+    </div>
+  </div>`;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   WIRE
+═══════════════════════════════════════════════════════════ */
+function wire(){
+  const{screen,modal}=S;
+  const bi=(id,fn)=>{const el=document.getElementById(id);if(el)el.addEventListener('input',e=>fn(e.target.value));};
+  const en=(id,fn)=>{const el=document.getElementById(id);if(el)el.addEventListener('keydown',e=>e.key==='Enter'&&fn());};
+
+  // Auth
+  bi('su',v=>upF('u',v));bi('sp',v=>upF('p',v));bi('sp2',v=>upF('p2',v));en('sp2',doSetup);
+  const lu=document.getElementById('lu'),lp=document.getElementById('lp');
+  if(lu){lu.addEventListener('input',e=>upL('u',e.target.value));lu.focus();}
+  if(lp){lp.addEventListener('input',e=>upL('p',e.target.value));lp.addEventListener('keydown',e=>e.key==='Enter'&&doLogin());}
+
+  // Modal
+  bi('mn',v=>upF('name',v));bi('mn2',v=>upF('note',v));
+  bi('mb',v=>upF('balance',v));bi('ma',v=>upF('amount',v));en('ma',()=>modal==='add-tx'?addTx():modal==='transfer'?doTransfer():null);
+  bi('mp1',v=>upF(modal==='change-pass'?'op':modal==='pin-setup'?'np':'op',v));
+  bi('mp2',v=>upF(modal==='change-pass'?'np':modal==='pin-setup'?'np2':'np',v));
+  bi('mp3',v=>upF('np2',v));
+  bi('mrd',v=>upF('recDay',v));
+  const mno=document.getElementById('mno');if(mno)mno.addEventListener('input',e=>upF('note',e.target.value));
+
+  // File import
+  const fi=document.getElementById('fi');if(fi)fi.addEventListener('change',e=>{if(e.target.files?.[0])importBk(e.target.files[0]);});
+
+  // PIN keyboard
+  if(screen==='pin'){
+    document.addEventListener('keydown',_pinKey,{once:false});
+  }
+
+  // Escape to close modal
+  if(modal){
+    const first=document.querySelector('.mb input');
+    if(first)setTimeout(()=>first.focus(),50);
+  }
+}
+function _pinKey(e){
+  if(S.screen!=='pin'){document.removeEventListener('keydown',_pinKey);return;}
+  if(e.key>='0'&&e.key<='9')pinPress(e.key);
+  else if(e.key==='Backspace')pinDel();
+  else if(e.key==='Enter')pinSubmit();
+}
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&S.modal)closeModal();});
+
+/* ═══════════════════════════════════════════════════════════
+   START
+═══════════════════════════════════════════════════════════ */
+boot();
+</script>
+</body>
+</html>
